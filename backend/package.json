@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "NODE_ENV=development nodemon src/server.js",
     "start": "NODE_ENV=production node src/server.js",
+    "serve:static": "serve -s ../frontend/dist -l 5173",
     "lint": "eslint .",
     "test": "node --test | tap-spec"
   },
@@ -18,11 +19,13 @@
     "helmet": "^7.1.0",
     "morgan": "^1.10.0",
     "mongoose": "^8.6.2",
-    "openai": "^4.56.0"
+    "openai": "^4.56.0",
+    "serve-static": "^1.15.0"
   },
   "devDependencies": {
     "eslint": "^9.9.0",
     "nodemon": "^3.1.4",
-    "tap-spec": "^5.0.0"
+    "tap-spec": "^5.0.0",
+    "serve": "^14.2.4"
   }
 }
