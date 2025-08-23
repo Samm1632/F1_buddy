@@ -7,19 +7,14 @@ Local MEVN chatbot that answers F‑1 visa questions and returns citations to of
 - Frontend: Vue 3, Vite, Pinia
 
 ## Setup
-1. Prerequisites: Node 18+, npm, MongoDB running locally
-2. Backend env:
-   - Copy `backend/.env.example` to `backend/.env` and fill `OPENAI_API_KEY`.
-3. Install dependencies:
-   ```bash
-   cd backend && npm install
-   cd ../frontend && npm install
-   ```
-4. Run dev:
-   ```bash
-   ./scripts/dev.sh
-   ```
-   - Backend: http://localhost:3001
+See `docs/setup.md` for detailed local instructions.
+
+Quickstart:
+1. Prereqs: Node 18+, npm, MongoDB (optional)
+2. Backend env: copy `backend/.env.example` to `backend/.env` and set `OPENAI_API_KEY`
+3. Install deps: `cd backend && npm install && cd ../frontend && npm install`
+4. Run dev: `./scripts/dev.sh`
+   - Backend: http://localhost:3001/health
    - Frontend: http://localhost:5173
 
 ## Endpoints
@@ -27,4 +22,10 @@ Local MEVN chatbot that answers F‑1 visa questions and returns citations to of
 - GET `/api/citations/search?q=...` -> { results[] }
 
 ## Fine‑tuning
-Datasets in `data/finetune/*.jsonl`. Prepare messages per OpenAI format.
+Datasets in `data/finetune/*.jsonl`. Prepare messages per OpenAI format. See `docs/finetune.md`.
+
+## Documentation
+- Supported queries: `docs/queries.md`
+- Architecture & API: `docs/architecture.md`
+- Citations & whitelist: `docs/citations.md`
+- Setup: `docs/setup.md`
