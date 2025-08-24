@@ -44,6 +44,10 @@ ${excerpts}`;
 export async function answerQuestion(question) {
   const topChunks = await searchSimilarChunks(question);
   const { system, user, citations } = buildPrompt(question, topChunks);
+  if (config.offline) {
+    const answer = composeOfflineAnswer(question, topChunks, citations);
+    return { answer, citations };
+  }
   const client = getOpenAIClient();
   const completion = await client.chat.completions.create({
     model: config.chatModel,
@@ -55,5 +59,24 @@ export async function answerQuestion(question) {
   });
   const answer = completion.choices?.[0]?.message?.content?.trim() || '';
   return { answer, citations };
+}
+
+function composeOfflineAnswer(question, chunks, citations) {
+  const lc = question.toLowerCase();
+  const durationLike = /duration|how long|stay|validity|grace/i.test(lc);
+  if (durationLike) {
+    // Search for key facts in chunks
+    const text = chunks.map((c) => c.content).join('\n');
+    const statements = [];
+    if (/duration of status|D\/S/i.test(text)) statements.push('F-1 status is admitted for duration of status (D/S), tied to your program. [1]');
+    if (/60[- ]day grace/i.test(text)) statements.push('You typically have a 60-day grace period after completing your program. [1][2]');
+    if (/OPT/i.test(text)) statements.push('Authorized OPT (and eligible STEM OPT extension) occurs within that status window. [3]');
+    if (statements.length) {
+      return statements.join(' ');
+    }
+  }
+  // Fallback generic concise answer using first citation
+  const first = citations[0]?.id ? `[${citations[0].id}]` : '';
+  return `Refer to official guidance for exact rules ${first}.`;
 }
 
