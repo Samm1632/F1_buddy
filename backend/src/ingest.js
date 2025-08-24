@@ -93,22 +93,22 @@ async function ingestOne({ url, title, text: presetText }) {
   );
   const sourceId = sourceRes.value?._id || sourceRes.lastErrorObject?.upserted;
 
-  const bulk = chunks.initializeUnorderedBulkOp();
   for (let i = 0; i < textChunks.length; i++) {
-    bulk.find({ sourceId, chunkIndex: i }).upsert().updateOne({
-      $set: {
-        sourceId,
-        sourceUrl: url,
-        sourceTitle: finalTitle,
-        chunkIndex: i,
-        content: textChunks[i],
-        embedding: embeddings[i],
-        updatedAt: now,
+    await chunks.updateOne(
+      { sourceId, chunkIndex: i },
+      {
+        $set: {
+          sourceId,
+          sourceUrl: url,
+          sourceTitle: finalTitle,
+          chunkIndex: i,
+          content: textChunks[i],
+          embedding: embeddings[i],
+          updatedAt: now,
+        },
       },
-    });
-  }
-  if (bulk.s.currentBatch && bulk.s.currentBatch.operations.length > 0) {
-    await bulk.execute();
+      { upsert: true }
+    );
   }
 }
 

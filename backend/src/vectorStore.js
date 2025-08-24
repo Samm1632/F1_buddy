@@ -6,11 +6,41 @@ let inMemoryIndex = [];
 
 export async function buildIndex() {
   const { chunks } = getCollections();
-  const cursor = chunks.find(
-    { embedding: { $exists: true } },
-    { projection: { content: 1, embedding: 1, sourceUrl: 1, sourceTitle: 1, chunkIndex: 1 } }
-  );
-  const docs = await cursor.toArray();
+  let docs;
+  if (config.offline) {
+    const cursor = chunks.find({}, { projection: { content: 1, embedding: 1, sourceUrl: 1, sourceTitle: 1, chunkIndex: 1 } });
+    docs = await cursor.toArray();
+  } else {
+    const cursor = chunks.find(
+      { embedding: { $exists: true } },
+      { projection: { content: 1, embedding: 1, sourceUrl: 1, sourceTitle: 1, chunkIndex: 1 } }
+    );
+    docs = await cursor.toArray();
+  }
+  if (config.offline && (!docs || docs.length === 0)) {
+    const offlineSeed = [
+      {
+        content: 'F-1 students are admitted for duration of status (D/S): you may remain in the U.S. for the time needed to complete your full course of study on Form I-20, including any authorized practical training, plus a 60-day grace period.',
+        sourceUrl: 'https://travel.state.gov/content/travel/en/us-visas/study/student-visa.html',
+        sourceTitle: 'Student Visa (F and M) — travel.state.gov',
+        chunkIndex: 0,
+      },
+      {
+        content: 'Maintaining F-1 status ties your stay to your program listed in SEVIS. After completion, most F-1 students have a 60-day grace period. Authorized OPT/STEM OPT occurs within that status window when properly approved.',
+        sourceUrl: 'https://studyinthestates.dhs.gov/students',
+        sourceTitle: 'Students — Study in the States (DHS)',
+        chunkIndex: 0,
+      },
+      {
+        content: 'Optional Practical Training (OPT) lets eligible F-1 students gain experience for up to 12 months; certain STEM fields may receive a 24-month extension.',
+        sourceUrl: 'https://studyinthestates.dhs.gov/sevis-help-hub/student-records/fm-student-visa/f-1-optional-practical-training-opt',
+        sourceTitle: 'F-1 Optional Practical Training (OPT) — DHS Study in the States',
+        chunkIndex: 0,
+      },
+    ];
+    const embeddings = await Promise.all(offlineSeed.map((d) => embedText(d.content)));
+    docs = offlineSeed.map((d, i) => ({ ...d, embedding: embeddings[i] }));
+  }
   inMemoryIndex = docs.map((d) => ({
     content: d.content,
     embedding: d.embedding,
